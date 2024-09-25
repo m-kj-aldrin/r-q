@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>re-quest</title>
+	<script type="module" src="{{ url_for('static', filename='js/re-quest.js') }}"></script>
+
+	<style>
+		body {
+			font-family: sans-serif;
+		}
+
+		re-get {
+			user-select: none;
+			cursor: pointer;
+			border: 1px currentColor solid;
+			border-radius: 1px;
+			padding: 2px 6px;
+		}
+	</style>
+</head>
+
+<body>
+
+	<re-quest endpoint="/users" mime="application/json">
+		<re-target></re-target>
+		<re-get>get users</re-get>
+	</re-quest>
+
+</body>
+
+</html>
