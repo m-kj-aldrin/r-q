@@ -1,5 +1,20 @@
-<ul></ul>
-{% for user in users %}
-<li>{{ user.name }} (ID: {{ user.id }})</li>
-{% endfor %}
+<ul target="users">
+	{% for user in users %}
+	<li data-user>
+		<ul>
+			<li>
+				<re-quest endpoint="/users/{{user.id}}" mime="text/html">
+					<re-delete>delete</re-delete>
+				</re-quest>
+			</li>
+			{% for k,v in user.items() %}
+			<li>
+				{{k}}: {{v}}
+			</li>
+			{% endfor %}
+		</ul>
+	</li>
+	{% endfor %}
 </ul>
+
+{# <h2 target="random-number">random: {{random}}</h2> #}

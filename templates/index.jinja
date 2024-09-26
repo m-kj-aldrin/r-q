@@ -12,22 +12,52 @@
 			font-family: sans-serif;
 		}
 
-		re-get {
-			user-select: none;
-			cursor: pointer;
+		.test {
+			color: red;
+		}
+
+		[data-user] {
+			margin-bottom: 1rem;
 			border: 1px currentColor solid;
+			padding: 4px;
 			border-radius: 1px;
-			padding: 2px 6px;
+		}
+
+		re-target,
+		re-quest {
+			display: contents;
 		}
 	</style>
 </head>
 
 <body>
 
-	<re-quest endpoint="/users" mime="application/json">
-		<re-target></re-target>
-		<re-get>get users</re-get>
-	</re-quest>
+
+	<re-flect>
+		<re-target name="random-number"></re-target>
+
+		<re-quest endpoint="/users" mime="text/html">
+			<re-get fire="load"></re-get>
+		</re-quest>
+
+		<br>
+
+		<div>
+			<re-quest endpoint="/users" method="POST" mime="text/html">
+				<form>
+					<input type="text" name="name" id="name" placeholder="name">
+					<input type="text" name="fruit" id="fruit" placeholder="fruit">
+					<input type="submit" value="send">
+				</form>
+			</re-quest>
+		</div>
+
+		<div class="test">
+			<h2>OKIDOKI</h2>
+			<re-target name="users"></re-target>
+		</div>
+
+	</re-flect>
 
 </body>
 

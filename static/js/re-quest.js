@@ -1,11 +1,13 @@
 /**
  * @param {Event} e
- * @returns {'GET' | undefined}
+ * @returns {'GET' | 'DELETE' | undefined}
  *  */
 function getMethodFromEventType(e) {
     switch (e.type) {
         case "re-get":
             return "GET";
+        case "re-delete":
+            return "DELETE";
     }
 }
 class ReQuest extends HTMLElement {
@@ -13,23 +15,33 @@ class ReQuest extends HTMLElement {
         super();
 
         this.addEventListener("re-get", this.#handler);
+        this.addEventListener("re-delete", this.#handler);
+        this.addEventListener("submit", (e) => {
+            e.preventDefault();
+            let form = new FormData(e.target);
+            this.#handler(e, form);
+        });
     }
 
-    /**@param {Event} e */
-    async #handler(e) {
+    /**
+     * @param {Event} e
+     * @param {FormData} form
+     */
+    async #handler(e, form = undefined) {
         let endpoint = this.getAttribute("endpoint");
         if (!endpoint) return;
 
-        let method = getMethodFromEventType(e);
+        let method = getMethodFromEventType(e) ?? this.getAttribute("method");
         if (method == undefined) return;
 
         let accept = this.getAttribute("mime") ?? "*/*";
 
-        let payload = await this.#fetch({ endpoint, method, accept });
+        let payload = await this.#fetch({ endpoint, method, accept, form });
         if (!payload) return;
 
         if (typeof payload == "string") {
-            this.#target(payload);
+            let event = new ReFlectEvent({ htmlString: payload });
+            this.dispatchEvent(event);
         } else {
             console.log(payload);
         }
@@ -37,15 +49,18 @@ class ReQuest extends HTMLElement {
 
     /**
      *
-     * @param {*} param0
+     * @param {{endpoint:string,method:string,accept:string,form:FormData}} param0
      * @returns {Promise<string | Record<string,any> | undefined>}
      */
-    async #fetch({ endpoint, method, accept }) {
-        let headers = new Headers({ Accept: accept });
+    async #fetch({ endpoint, method, accept, form }) {
+        let headers = new Headers({ Accept: accept, "X-Re-Quest": "true" });
+
+        if (method == "GET" || method == "HEAD") form = null;
 
         let request = new Request(endpoint, {
             method,
             headers,
+            body: form,
         });
 
         let response = await fetch(request);
@@ -57,8 +72,6 @@ class ReQuest extends HTMLElement {
                 : contentType == "text/html"
                 ? await response.text()
                 : undefined;
-
-        if (payload == undefined) return;
 
         return payload;
     }
@@ -82,9 +95,78 @@ customElements.define("re-quest", ReQuest);
 class ReGet extends HTMLElement {
     constructor() {
         super();
-        this.addEventListener("click", (e) => {
-            let event = new Event("re-get", { bubbles: true });
-            this.dispatchEvent(event);
+        this.addEventListener("click", this.#fire);
+    }
+
+    #fire() {
+        let event = new Event("re-get", { bubbles: true });
+        this.dispatchEvent(event);
+    }
+
+    connectedCallback() {
+        let fire = this.getAttribute("fire");
+        switch (fire) {
+            case "load":
+                this.#fire();
+                break;
+        }
+    }
+    disconnectedCallback() {}
+}
+
+customElements.define("re-get", ReGet);
+
+class ReDelete extends HTMLElement {
+    constructor() {
+        super();
+        this.addEventListener("click", this.#fire);
+    }
+
+    #fire() {
+        let event = new Event("re-delete", { bubbles: true });
+        
+        this.dispatchEvent(event);
+    }
+
+    connectedCallback() {
+        let fire = this.getAttribute("fire");
+        switch (fire) {
+            case "load":
+                this.#fire();
+                break;
+        }
+    }
+    disconnectedCallback() {}
+}
+
+customElements.define("re-delete", ReDelete);
+
+class ReFlectEvent extends Event {
+    /**
+     * @param {{htmlString:string}} data
+     */
+    constructor(data) {
+        super("re-flect", { bubbles: true });
+        this.data = data;
+    }
+}
+
+class ReFlect extends HTMLElement {
+    constructor() {
+        super();
+        this.addEventListener("re-flect", this.#handler);
+    }
+
+    /**@param {ReFlectEvent} e */
+    #handler(e) {
+        let htmlString = e.data.htmlString;
+        let doc = new DOMParser().parseFromString(htmlString, "text/html");
+        doc.querySelectorAll("[target]").forEach((reflection) => {
+            let name = reflection.getAttribute("target");
+            let target = this.querySelector(`re-target[name='${name}']`);
+            if (target) {
+                target.innerHTML = reflection.outerHTML;
+            }
         });
     }
 
@@ -92,4 +174,4 @@ class ReGet extends HTMLElement {
     disconnectedCallback() {}
 }
 
-customElements.define("re-get", ReGet);
+customElements.define("re-flect", ReFlect);
