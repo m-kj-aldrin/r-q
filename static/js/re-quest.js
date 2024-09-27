@@ -124,7 +124,7 @@ class ReDelete extends HTMLElement {
 
     #fire() {
         let event = new Event("re-delete", { bubbles: true });
-        
+
         this.dispatchEvent(event);
     }
 
