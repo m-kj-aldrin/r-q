@@ -6,6 +6,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>re-quest</title>
 	<script type="module" src="{{ url_for('static', filename='js/re-quest.js') }}"></script>
+	<script type="module" src="{{ url_for('static', filename='js/html-event.js') }}"></script>
+
 
 	<style>
 		body {
@@ -27,13 +29,47 @@
 		re-quest {
 			display: contents;
 		}
+
+		.columns {
+			display: flex;
+			gap: 16px;
+		}
 	</style>
 </head>
 
 <body>
 
 
-	<re-flect>
+	<re-quest endpoint="/random">
+		{# <e-vent on="repeat 1000" fire="submit"></e-vent> #}
+		<e-vent on="load" fire="submit"></e-vent>
+		<h2>
+			<output>{{random}}</output>
+		</h2>
+	</re-quest>
+
+	<re-quest fire-on="click" endpoint="/users">
+		<button>click</button>
+		<e-vent on="load" fire="click"></e-vent>
+	</re-quest>
+
+	<re-quest fire-on="click" method="DELETE" endpoint="/users/clear">
+		<button>clear</button>
+	</re-quest>
+
+	<re-quest>
+		<form action="/users" method="POST">
+			<input type="text" name="name" id="name" placeholder="name">
+			<input type="submit" value="send">
+		</form>
+	</re-quest>
+
+	<div class="columns">
+		<div re-target="users"></div>
+		<div re-target="users"></div>
+	</div>
+
+	{# <re-flect>
 		<re-target name="random-number"></re-target>
 
 		<re-quest endpoint="/users" mime="text/html">
@@ -57,7 +93,7 @@
 			<re-target name="users"></re-target>
 		</div>
 
-	</re-flect>
+	</re-flect> #}
 
 </body>
 

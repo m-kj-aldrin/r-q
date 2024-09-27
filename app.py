@@ -9,7 +9,7 @@ app = Flask(__name__)
 # Route to serve the index page
 @app.route("/")
 def index():
-    return render_template("index.jinja")
+    return render_template("index.jinja", random=randint(0, 1024))
 
 
 # Users data
@@ -18,6 +18,17 @@ users = [
     {"id": uuid.uuid4(), "name": "Bob"},
     {"id": uuid.uuid4(), "name": "Charlie"},
 ]
+
+
+@app.get("/random")
+def random_number():
+    return str(randint(0, 1024))
+
+
+@app.route("/users/clear", methods=["DELETE"])
+def clear_users():
+    users.clear()
+    return render_template("partials/users.jinja", users=users)
 
 
 @app.route("/users/<uuid:user_id>", methods=["DELETE"])

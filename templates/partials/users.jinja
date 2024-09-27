@@ -3,8 +3,8 @@
 	<li data-user>
 		<ul>
 			<li>
-				<re-quest endpoint="/users/{{user.id}}" mime="text/html">
-					<re-delete>delete</re-delete>
+				<re-quest endpoint="/users/{{user.id}}" method="DELETE" fire-on="click">
+					<button>delete</button>
 				</re-quest>
 			</li>
 			{% for k,v in user.items() %}
