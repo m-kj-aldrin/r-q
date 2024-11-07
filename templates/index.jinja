@@ -6,6 +6,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>re-quest</title>
 	<script type="module" src="{{ url_for('static', filename='js/re-quest.js') }}"></script>
+	<script type="module" src="{{ url_for('static', filename='js/re-quest-shell.js') }}"></script>
 	<script type="module" src="{{ url_for('static', filename='js/html-event.js') }}"></script>
 
 
@@ -39,24 +40,26 @@
 
 <body>
 
-	<re-quest>
-		<form action="/reminders" method="POST">
-			<label for="mmid">mmid</label>
-			<input type="text" name="mmid" id="mmid">
+	<re-quest-shell>
 
-			<label for="description">description</label>
-			<input type="text" name="description" id="description">
+		<re-quest method="POST" path="/reminders">
+			<form>
+				<label for="mmid">mmid</label>
+				<input type="text" name="mmid" id="mmid">
 
-			<input type="submit" value="add">
-		</form>
-	</re-quest>
+				<label for="description">description</label>
+				<input type="text" name="description" id="description">
 
+				<input type="submit" value="add">
+			</form>
+		</re-quest>
 
-	<div class="columns">
-		<div re-target="reminders">
+		<re-target name="reminders">
 			{% include "reminders.jinja" %}
-		</div>
-	</div>
+		</re-target>
+
+
+	</re-quest-shell>
 
 
 </body>

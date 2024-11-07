@@ -1,130 +1,77 @@
-class ReQuestEvent extends Event {
+export class ReQuestEvent extends Event {
     /**
-     * @param {{method:string,endpoint:string,accept:string,formData:FormData}} param0
+     * @param {Document} fragment
      */
-    constructor({ method, endpoint, accept, formData }) {
+    constructor(fragment) {
         super("re-quest", { bubbles: true });
-        /**@type {string} */
-        this.method = method;
-        /**@type {string} */
-        this.endpoint = endpoint;
-        /**@type {string} */
-        this.accept = accept;
-        /**@type {FormData} */
-        this.formData = formData;
+        this.#fragment = fragment;
     }
-}
-/**
- * @param {ReQuestEvent} e
- */
-async function reQuestHandler(e) {
-    let { endpoint, method, accept, formData } = e;
-    let headers = new Headers({ Accept: accept, "X-Re-Quest": "true" });
 
-    if (method == "GET" || method == "HEAD") formData = null;
+    /**@type {Document | null} */
+    #fragment = null;
 
-    let request = new Request(endpoint, {
-        method,
-        headers,
-        body: formData,
-    });
-
-    let response = await fetch(request);
-    let contentType = response.headers.get("content-type").split(";")[0];
-
-    let payload =
-        contentType == "application/json"
-            ? await response.json()
-            : contentType == "text/html"
-            ? await response.text()
-            : undefined;
-
-    // console.log(payload);
-
-    if (typeof payload == "string") {
-        reflectTarget.call(e.target, payload);
+    get fragment() {
+        return this.#fragment;
     }
 }
 
-/**
- * @param {string} htmlString
- * @this {ReQuestElement}
- */
-function reflectTarget(htmlString) {
-    let output = this.querySelector("output");
-    if (output) {
-        output.innerHTML = htmlString;
-        return;
-    }
-
-    let doc = new DOMParser().parseFromString(htmlString, "text/html");
-
-    doc.querySelectorAll("[target]").forEach((reflection) => {
-        let name = reflection.getAttribute("target");
-        let targets = document.querySelectorAll(`[re-target='${name}']`);
-
-        targets.forEach((target) => {
-            target.innerHTML = reflection.outerHTML;
-        });
-    });
-}
-
-document.body.addEventListener("re-quest", reQuestHandler);
-
-class ReQuestElement extends HTMLElement {
+export class ReQuest extends HTMLElement {
     constructor() {
         super();
     }
 
-    #fire({ method, endpoint, accept, formData }) {
-        let event = new ReQuestEvent({ method, endpoint, accept, formData });
-        this.dispatchEvent(event);
+    get method() {
+        return this.getAttribute("method");
     }
 
-    /**@param {Event} e */
-    #handler(e) {
-        let type = e.type;
-        let firePayload = {
-            method: this.getAttribute("method") ?? "GET",
-            endpoint: this.getAttribute("endpoint"),
-            accept: this.getAttribute("accept") ?? "text/html",
-            /**@type {FormData} */
-            formData: null,
-        };
-
-        switch (type) {
-            case "submit":
-                e.preventDefault();
-
-                if (!(e.target instanceof HTMLFormElement)) return;
-                let form = e.target;
-
-                form.method && (firePayload.method = form.method);
-                form.action && (firePayload.endpoint = form.action);
-
-                firePayload.formData = new FormData(form);
-
-                break;
-            case "click":
-                break;
-        }
-
-        this.#fire(firePayload);
+    get path() {
+        return this.getAttribute("path");
     }
 
-    #hasInit = false;
+    #isInit = false;
     #init() {
-        if (this.#hasInit) return;
-        this.#hasInit = true;
+        if (this.#isInit) return;
+        this.#isInit = true;
 
-        let fireOn = this.getAttribute("fire-on") ?? "submit";
-        this.addEventListener(fireOn, this.#handler);
+        this.#attachListeners();
+    }
+
+    #attachListeners() {
+        this.addEventListener("submit", async (e) => {
+            if (!(e.target instanceof HTMLFormElement)) return;
+            e.preventDefault();
+
+            let headers = new Headers({
+                accept: "text/html",
+            });
+
+            let formData = new FormData(e.target);
+
+            let request = new Request(this.path, {
+                method: this.method,
+                headers,
+                body: formData,
+            });
+
+            let response = await fetch(request);
+            if (!response.ok) {
+                return;
+            }
+
+            let text = await response.text();
+            if (!text) return;
+
+            let document = new DOMParser().parseFromString(text, "text/html");
+
+            this.dispatchEvent(new ReQuestEvent(document));
+        });
     }
 
     connectedCallback() {
         this.#init();
     }
+
     disconnectedCallback() {}
 }
 
-customElements.define("re-quest", ReQuestElement);
+customElements.define("re-quest", ReQuest);
