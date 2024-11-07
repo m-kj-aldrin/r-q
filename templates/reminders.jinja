@@ -1,0 +1,24 @@
+{# <ul target="reminders">
+	<li>hello</li>
+</ul> #}
+<ul target="reminders">
+	{% for reminder in reminders %}
+	<li class="reminder">
+		<strong>MMID {{ reminder.mmid }}:</strong> {{ reminder.description }}
+		<!-- Update Form -->
+		{# <form action="{{ url_for('update_reminder', mmid=reminder.mmid) }}" method="POST" style="display:inline;">
+			<input type="text" name="description" placeholder="New description" required>
+			<button type="submit">Update</button>
+		</form> #}
+		<!-- Delete Form -->
+		{# <form action="{{ url_for('delete_reminder', mmid=reminder.mmid) }}" method="POST" style="display:inline;">
+			<button type="submit">Delete</button>
+		</form> #}
+		<re-quest fire-on="click" endpoint="/reminders/{{ reminder.mmid }}" method="DELETE">
+			<button>delete</button>
+		</re-quest>
+	</li>
+	{% else %}
+	<li>No reminders available.</li>
+	{% endfor %}
+</ul>
